@@ -44,6 +44,12 @@ export interface ScheduleResponse {
   warnings?: string[];
 }
 
+// Column configuration for editable tables
+export interface DropdownOption {
+  value: string | number;
+  label: string;
+}
+
 // Form state for editable tables
 export interface TableData {
   volunteers: Volunteer[];

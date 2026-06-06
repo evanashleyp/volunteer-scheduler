@@ -14,11 +14,17 @@ import {
   Switch,
 } from "@mui/material";
 
+export interface DropdownOption {
+  value: string | number;
+  label: string;
+}
+
 export interface Column {
   key: string;
   label: string;
-  type?: "text" | "number" | "checkbox";
+  type?: "text" | "number" | "checkbox" | "select" | "combobox";
   width?: string;
+  options?: DropdownOption[];
 }
 
 export interface EditableTableProps {
@@ -52,7 +58,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
       };
       onDataChange(newData);
     } else {
-      // For text/number, open edit mode
+      // For text/number/select/combobox, open edit mode
       setEditingCell({ rowIndex, key: columnKey });
       setEditValue(value);
     }
@@ -109,6 +115,82 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
   const handleDeleteRow = (rowIndex: number) => {
     onDataChange(data.filter((_, idx) => idx !== rowIndex));
+  };
+
+  const renderSelectCell = (col: Column) => (
+    <select
+      autoFocus
+      value={editValue}
+      onChange={(e) => handleCellChange(e.target.value)}
+      onBlur={handleCellBlur}
+      onFocus={(e) => e.currentTarget.click()}
+      style={{
+        width: "100%",
+        padding: "4px",
+        fontSize: "14px",
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+      }}
+    >
+      <option value="">-- Select --</option>
+      {col.options?.map((opt) => (
+        <option key={opt.value} value={String(opt.value)}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const renderComboboxCell = (col: Column, rowIndex: number) => (
+    <>
+      <input
+        autoFocus
+        type="text"
+        list={`datalist-${col.key}-${rowIndex}`}
+        value={editValue}
+        onChange={(e) => handleCellChange(e.target.value)}
+        onBlur={handleCellBlur}
+        onFocus={(e) => {
+          e.currentTarget.select();
+        }}
+        style={{
+          width: "100%",
+          padding: "4px",
+          fontSize: "14px",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
+        }}
+      />
+      <datalist id={`datalist-${col.key}-${rowIndex}`}>
+        {col.options?.map((opt) => (
+          <option key={opt.value} value={String(opt.value)}>
+            {opt.label}
+          </option>
+        ))}
+      </datalist>
+    </>
+  );
+
+  const renderEditingCell = (col: Column, rowIndex: number) => {
+    if (col.type === "select") {
+      return renderSelectCell(col);
+    }
+    if (col.type === "combobox") {
+      return renderComboboxCell(col, rowIndex);
+    }
+    return (
+      <TextField
+        autoFocus
+        type={col.type === "number" ? "number" : "text"}
+        value={editValue}
+        onChange={(e) => handleCellChange(e.target.value)}
+        onBlur={handleCellBlur}
+        size="small"
+        variant="standard"
+        sx={{ width: "100%" }}
+        inputProps={col.key === "bonus" ? { min: 0, max: 50 } : {}}
+      />
+    );
   };
 
   return (
@@ -170,48 +252,40 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     }}
                   >
                     {editingCell?.rowIndex === rowIndex &&
-                    editingCell?.key === col.key && col.type !== "checkbox" ? (
-                      <TextField
-                        autoFocus
-                        type={col.type === "number" ? "number" : "text"}
-                        value={editValue}
-                        onChange={(e) => handleCellChange(e.target.value)}
-                        onBlur={handleCellBlur}
-                        size="small"
-                        variant="standard"
-                        sx={{ width: "100%" }}
-                        inputProps={col.key === "bonus" ? { min: 0, max: 50 } : {}}
-                      />
-                    ) : col.type === "checkbox" ? (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "100%",
-                          height: "100%",
-                        }}
-                      >
-                        <Switch
-                          checked={Boolean(row[col.key])}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            const newData = [...data];
-                            newData[rowIndex] = {
-                              ...newData[rowIndex],
-                              [col.key]: e.target.checked ? 1 : 0,
-                            };
-                            onDataChange(newData);
+                    editingCell?.key === col.key && col.type !== "checkbox"
+                      ? renderEditingCell(col, rowIndex)
+                      : col.type === "checkbox"
+                      ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "100%",
+                            height: "100%",
                           }}
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        />
-                      </Box>
-                    ) : (
-                      <span>{row[col.key] || "-"}</span>
-                    )}
+                        >
+                          <Switch
+                            checked={Boolean(row[col.key])}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              const newData = [...data];
+                              newData[rowIndex] = {
+                                ...newData[rowIndex],
+                                [col.key]: e.target.checked ? 1 : 0,
+                              };
+                              onDataChange(newData);
+                            }}
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          />
+                        </Box>
+                      )
+                      : (
+                        <span>{row[col.key] || "-"}</span>
+                      )}
                   </TableCell>
                 ))}
               </TableRow>

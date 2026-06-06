@@ -40,18 +40,50 @@ const generateAvailabilityColumns = (numWeeks: number): Column[] => {
   return cols;
 };
 
-const fixedAssignmentColumns: Column[] = [
-  { key: "week", label: "Week", type: "number" },
-  { key: "role", label: "Role", type: "text" },
-  { key: "name", label: "Name", type: "text" },
-];
+const generateFixedAssignmentColumns = (volunteers: Volunteer[], numWeeks: number): Column[] => {
+  const volunteerNames = volunteers.map((v) => ({
+    value: v.name,
+    label: v.name,
+  }));
+  const roles = [
+    { value: "hot", label: "Hot" },
+    { value: "cold", label: "Cold" },
+    { value: "order", label: "Order" },
+  ];
+  const weeks = Array.from({ length: numWeeks }, (_, i) => ({
+    value: i + 1,
+    label: `Week ${i + 1}`,
+  }));
 
-const specialRuleColumns: Column[] = [
-  { key: "name", label: "Name", type: "text" },
-  { key: "week", label: "Week", type: "number" },
-  { key: "role", label: "Role", type: "text" },
-  { key: "bonus", label: "Bonus (0 - 50)", type: "number" },
-];
+  return [
+    { key: "week", label: "Week", type: "select", options: weeks },
+    { key: "role", label: "Role", type: "select", options: roles },
+    { key: "name", label: "Name", type: "combobox", options: volunteerNames },
+  ];
+};
+
+const generateSpecialRulesColumns = (volunteers: Volunteer[], numWeeks: number): Column[] => {
+  const volunteerNames = volunteers.map((v) => ({
+    value: v.name,
+    label: v.name,
+  }));
+  const roles = [
+    { value: "hot", label: "Hot" },
+    { value: "cold", label: "Cold" },
+    { value: "order", label: "Order" },
+  ];
+  const weeks = Array.from({ length: numWeeks }, (_, i) => ({
+    value: i + 1,
+    label: `Week ${i + 1}`,
+  }));
+
+  return [
+    { key: "name", label: "Name", type: "combobox", options: volunteerNames },
+    { key: "week", label: "Week", type: "select", options: weeks },
+    { key: "role", label: "Role", type: "select", options: roles },
+    { key: "bonus", label: "Bonus (0 - 50)", type: "number" },
+  ];
+};
 
 const InputDataPage: React.FC<InputDataPageProps> = ({ data, onDataChange }) => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -61,6 +93,8 @@ const InputDataPage: React.FC<InputDataPageProps> = ({ data, onDataChange }) => 
   const [saveMessage, setSaveMessage] = useState<{ type: string; text: string } | null>(null);
 
   const availabilityColumns = generateAvailabilityColumns(numWeeks);
+  const fixedAssignmentColumnsWithOptions = generateFixedAssignmentColumns(data.volunteers, numWeeks);
+  const specialRulesColumnsWithOptions = generateSpecialRulesColumns(data.volunteers, numWeeks);
 
   const handleVolunteersChange = (newData: Record<string, any>[]) => {
     onDataChange({ ...data, volunteers: newData as Volunteer[] });
@@ -194,7 +228,7 @@ const InputDataPage: React.FC<InputDataPageProps> = ({ data, onDataChange }) => 
           )}
           {tabIndex === 2 && (
             <EditableTable
-              columns={fixedAssignmentColumns}
+              columns={fixedAssignmentColumnsWithOptions}
               data={data.fixed_assignments}
               onDataChange={handleFixedAssignmentsChange}
               title="Pre-assigned Roles (immutable)"
@@ -202,7 +236,7 @@ const InputDataPage: React.FC<InputDataPageProps> = ({ data, onDataChange }) => 
           )}
           {tabIndex === 3 && (
             <EditableTable
-              columns={specialRuleColumns}
+              columns={specialRulesColumnsWithOptions}
               data={data.special_rules}
               onDataChange={handleSpecialRulesChange}
               title="Bonus Rules"
