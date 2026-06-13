@@ -1,8 +1,10 @@
 # Volunteer Scheduler
 
-**v2.0.0** – Fullstack (Backend API + Interactive Frontend)
+**v2.1.0** – Fullstack Volunteer Scheduling Platform
 
 A rule-based, score-driven scheduling system for weekly volunteer assignments with a modern web interface.
+
+The application consists of a Python scheduling engine exposed through a Flask API and a React + TypeScript frontend for managing volunteer data, fixed assignments, and schedule generation.
 
 This project is designed to generate fair, balanced schedules while respecting
 availability, skills, fixed commitments, and long-term workload distribution.
@@ -16,13 +18,24 @@ real human data to keep the repository clean and safe for public use.
 
 - Multiple roles per week (`hot`, `cold`, `order`)
 - Configurable role requirements (minimum & target)
-- Hard constraints (availability, skills, one role per week)
+
+- Hard constraints
+  - Availability
+  - Skill compatibility
+  - One role per volunteer per week
+
 - Soft constraints via scoring & penalties
 - Fixed (immutable) assignments
+
+- Interactive React frontend
+- Editable table-based data management
+- Dropdown-based assignment entry
+- Volunteer autocomplete / combobox support
+
 - Optional bonus rules (CSV-driven)
-- Fairness & coverage balancing
-- Warning system when constraints cannot be fully met
-- CSV export for easy spreadsheet usage
+- Fairness & workload balancing
+- Warning system for unmet constraints
+- CSV export for spreadsheet usage
 
 ---
 
@@ -131,6 +144,18 @@ start-dev.bat
 This will launch:
 - Flask API on `http://localhost:5000`
 - Frontend on `http://localhost:5173` (Vite dev server)
+
+### Frontend Features
+
+The web interface provides:
+
+- Editable table-based data management
+- Dropdown selectors for weeks and roles
+- Volunteer autocomplete for fixed assignments
+- CSV-backed persistence
+- Schedule generation through REST API
+
+The frontend improves data entry through dropdown and autocomplete controls while preserving the original CSV-based storage format internally.
 
 ### Backend Only (CLI)
 
@@ -243,10 +268,9 @@ This project follows semantic versioning:
 
 ### Version History
 
-- **v1.0.0** – Initial stable scheduling engine
-- **v1.1.0** – Added special rules via CSV
-- **v1.1.1** – Fixed scoring edge cases
-- **v2.0.0** – Fullstack with interactive frontend and REST API
+- v1.0.0 – Initial public release
+- v2.0.0 – Fullstack architecture with Flask API and React frontend
+- v2.1.0 – Improved data entry experience with dropdowns and volunteer autocomplete
 
 Tags are used instead of versioned folder names.
 
