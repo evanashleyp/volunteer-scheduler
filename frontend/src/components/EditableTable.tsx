@@ -67,31 +67,34 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const handleCellChange = (newValue: any) => {
     setEditValue(newValue);
   };
+  // Centralized commit helper used by blur, Enter, and select onChange
+  const commitEdit = (value?: any) => {
+    if (!editingCell) return false;
+    const newData = [...data];
+    const column = columns.find((c) => c.key === editingCell.key);
 
-  const handleCellBlur = () => {
-    if (editingCell) {
-      const newData = [...data];
-      const column = columns.find((c) => c.key === editingCell.key);
-
-      // Type conversion based on column type
-      let finalValue = editValue;
-      if (column?.type === "number") {
-        finalValue = editValue === "" ? 0 : parseInt(editValue, 10);
-        // Validate bonus column (0-50 range)
-        if (column.key === "bonus") {
-          finalValue = Math.max(0, Math.min(50, finalValue));
-        }
-      } else if (column?.type === "checkbox") {
-        finalValue = editValue ? 1 : 0;
+    // Use passed value if provided, otherwise current editValue
+    let finalValue = value !== undefined ? value : editValue;
+    // Type conversion based on column type
+    if (column?.type === "number") {
+      finalValue = finalValue === "" ? 0 : parseInt(finalValue, 10);
+      // Validate bonus column (0-50 range)
+      if (column.key === "bonus") {
+        finalValue = Math.max(0, Math.min(50, finalValue));
       }
-
-      newData[editingCell.rowIndex] = {
-        ...newData[editingCell.rowIndex],
-        [editingCell.key]: finalValue,
-      };
-      onDataChange(newData);
+    } else if (column?.type === "checkbox") {
+      finalValue = finalValue ? 1 : 0;
     }
+
+    newData[editingCell.rowIndex] = {
+      ...newData[editingCell.rowIndex],
+      [editingCell.key]: finalValue,
+    };
+    onDataChange(newData);
+    // exit edit mode
     setEditingCell(null);
+    setEditValue("");
+    return true;
   };
 
   const handleAddRow = () => {
@@ -121,9 +124,14 @@ const EditableTable: React.FC<EditableTableProps> = ({
     <select
       autoFocus
       value={editValue}
-      onChange={(e) => handleCellChange(e.target.value)}
-      onBlur={handleCellBlur}
-      onFocus={(e) => e.currentTarget.click()}
+      onChange={(e) => {
+        const v = e.target.value;
+        handleCellChange(v);
+        // commit immediately when a selection is made so keyboard selection works
+        // pass v to avoid relying on state update timing
+        commitEdit(v);
+      }}
+      onBlur={() => commitEdit()}
       style={{
         width: "100%",
         padding: "4px",
@@ -149,7 +157,15 @@ const EditableTable: React.FC<EditableTableProps> = ({
         list={`datalist-${col.key}-${rowIndex}`}
         value={editValue}
         onChange={(e) => handleCellChange(e.target.value)}
-        onBlur={handleCellBlur}
+        onBlur={() => commitEdit()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            commitEdit();
+          } else if (e.key === "Escape") {
+            setEditingCell(null);
+            setEditValue("");
+          }
+        }}
         onFocus={(e) => {
           e.currentTarget.select();
         }}
@@ -184,7 +200,15 @@ const EditableTable: React.FC<EditableTableProps> = ({
         type={col.type === "number" ? "number" : "text"}
         value={editValue}
         onChange={(e) => handleCellChange(e.target.value)}
-        onBlur={handleCellBlur}
+        onBlur={() => commitEdit()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            commitEdit();
+          } else if (e.key === "Escape") {
+            setEditingCell(null);
+            setEditValue("");
+          }
+        }}
         size="small"
         variant="standard"
         sx={{ width: "100%" }}
