@@ -1,6 +1,6 @@
 # Volunteer Scheduler
 
-**v2.1.0** – Fullstack Volunteer Scheduling Platform
+**v2.1.1** – Fullstack Volunteer Scheduling Platform
 
 A rule-based, score-driven scheduling system for weekly volunteer assignments with a modern web interface.
 
@@ -271,6 +271,7 @@ This project follows semantic versioning:
 - v1.0.0 – Initial public release
 - v2.0.0 – Fullstack architecture with Flask API and React frontend
 - v2.1.0 – Improved data entry experience with dropdowns and volunteer autocomplete
+- v2.1.1 – Fixed keyboard editing behavior and inline edit commit handling for editable tables
 
 Tags are used instead of versioned folder names.
 
